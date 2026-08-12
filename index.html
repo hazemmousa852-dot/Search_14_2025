@@ -41,9 +41,14 @@ header p{color:var(--muted);font-size:1.02rem;margin-top:6px}
 .card .actions button{font-family:inherit;font-size:.88rem;font-weight:700;padding:7px 14px;border:1.5px solid var(--line);border-radius:8px;background:#fbfcfa;color:var(--ink);cursor:pointer;transition:all .15s}
 .card .actions button:hover{border-color:var(--accent);color:var(--accent)}
 .penalty{margin-top:14px;background:var(--penal-soft);border:1.5px solid #ecdcc7;border-radius:10px;padding:13px 16px}
-.penalty .ph{font-weight:800;color:var(--penal-dark);font-size:.95rem;margin-bottom:4px}
+.penalty .ph{font-weight:800;color:var(--penal-dark);font-size:.95rem;margin-bottom:8px}
 .penalty .pt{font-size:.97rem;color:#5c3d1b}
 .penalty .pt.short{font-weight:700}
+.penalty .fine-lines{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.penalty .fine-line{display:flex;align-items:flex-start;gap:8px;font-size:.95rem;font-weight:700;color:#5c3d1b}
+.penalty .fine-line .ic{flex:0 0 auto}
+.penalty .fulltext{margin-top:10px;padding-top:10px;border-top:1px dashed #d9c4a5;font-size:.93rem;color:#6d4c2a;line-height:1.8}
+.penalty .fulltext b{color:var(--penal-dark)}
 mark.hl{background:#fff3a0;border-radius:4px;padding:0 1px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--accent-dark);color:#fff;padding:11px 22px;border-radius:10px;font-size:.95rem;font-weight:700;box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
 .toast.show{opacity:1}
@@ -2895,10 +2900,33 @@ var LAW_DATA = {
     var p = penalByNum[pn];
     if(!p) return '';
     var txt = p.text;
-    // استخراج نص الغرامة كاملًا بنطاقها (من ... إلى) حتى أول فاصلة أو فاصلة منقوطة
+    // استخراج الغرامة الأولية
     var m = txt.match(/بغرامة[\s\w\u0621-\u064A\u0660-\u0669\u06F0-\u06F9\u0640()（）٪%]+?(?=\s*[,،؛\u061b\.])/);
-    var fine = m ? m[0].trim() : 'وفقًا لأحكام هذه المادة الجزائية';
-    return '<div class="penalty"><div class="ph">⚖️ الجزاء المرتبط — م ('+pn+')</div><div class="pt short">'+esc(fine)+'</div></div>';
+    var fine = m ? m[0].trim() : '';
+    // هل تتعدد الغرامة؟
+    var multiple = /تتعدد الغرامة/.test(txt);
+    // هل تضاعف في العود؟
+    var recidive = /تضاعف الغرامة/.test(txt);
+    // غرامة العود إذا ذكرت بشكل خاص (م289: إغلاق المنشأة)
+    var recidiveExtra = '';
+    var rm = txt.match(/وفى حالة العود([^،؛\.]*)/);
+    if(rm && /غلق|إغلاق/.test(rm[1])) recidiveExtra = rm[1].trim();
+    // عقوبات إضافية: إغلاق المنشأة، السجن...
+    var extra = '';
+    var em = txt.match(/يقضى بإغلاق المنشأة|بغلق المنشأة/);
+    if(em) extra = (extra ? extra + ' — ' : '') + (em[0]==='يقضى بإغلاق المنشأة' ? 'للمحكمة الحكم بإغلاق المنشأة' : 'الحكم بغلق المنشأة لمدة لا تجاوز ستة أشهر');
+    var hm = txt.match(/السجن[^،؛\.]*/);
+    if(hm) extra = (extra ? extra + ' — ' : '') + hm[0];
+    var fineText = fine ? ('الغرامة الأولى: '+fine.replace('بغرامة ','').replace(/\s*جنيه\s*$/,'')+' جنيه') : 'وفقًا لأحكام هذه المادة الجزائية';
+    var lines = '<div class="fine-lines">'
+      +'<div class="fine-line"><span class="ic">🔸</span><span>'+esc(fineText)+'</span></div>'
+      +(multiple?'<div class="fine-line"><span class="ic">🔸</span><span>تتعدد الغرامة بتعدد العمال الذين وقعت بشأنهم المخالفة</span></div>':'')
+      +(recidive?'<div class="fine-line"><span class="ic">🔸</span><span>في حالة العود (التكرار): تضاعف الغرامة'+(recidiveExtra?' '+esc(recidiveExtra):'')+'</span></div>':'')
+      +'</div>';
+    return '<div class="penalty"><div class="ph">⚖️ الجزاء المرتبط — م ('+pn+')</div>'
+      +lines
+      +(extra?'<div class="fine-lines"><div class="fine-line"><span class="ic">🔸</span><span>'+esc(extra)+'</span></div></div>':'')
+      +'<div class="fulltext"><b>نص المادة كاملًا:</b> '+esc(txt)+'</div></div>';
   }
 
   function buildPenalty(a){
