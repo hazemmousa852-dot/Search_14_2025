@@ -43,6 +43,8 @@ header p{color:var(--muted);font-size:1.02rem;margin-top:6px}
 .penalty{margin-top:14px;background:var(--penal-soft);border:1.5px solid #ecdcc7;border-radius:10px;padding:13px 16px}
 .penalty .ph{font-weight:800;color:var(--penal-dark);font-size:.95rem;margin-bottom:4px}
 .penalty .pt{font-size:.97rem;color:#5c3d1b}
+.penalty .pt.short{font-weight:700}
+mark.hl{background:#fff3a0;border-radius:4px;padding:0 1px}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--accent-dark);color:#fff;padding:11px 22px;border-radius:10px;font-size:.95rem;font-weight:700;box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
 .toast.show{opacity:1}
 .empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:1.05rem}
@@ -2863,20 +2865,45 @@ var LAW_DATA = {
   }
 
   /* ---------- العرض ---------- */
-  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function highlight(text, term){
+    var hl = term && term.trim();
+    if(!hl) return esc(text);
+    var norm = normArabicDigits(stripTashkeel(hl));
+    var words = norm.split(/\s+/).filter(function(w){return w.length>=1;});
+    if(!words.length) return esc(text);
+    var wordsRe = words.map(function(w){return w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|');
+    var regex = new RegExp('('+wordsRe+')','g');
+    var plain = normArabicDigits(stripTashkeel(text));
+    var html = '', idx = 0, lastEnd = 0, m2;
+    while((m2 = regex.exec(plain)) !== null){
+      var start = m2.index;
+      if(start < lastEnd) continue;
+      var end = start + m2[0].length;
+      html += esc(text.slice(idx, start)) + '<mark class="hl">' + esc(text.slice(start, end)) + '</mark>';
+      idx = end; lastEnd = end;
+    }
+    return html + esc(text.slice(idx));
+  }
+
+  function esc(s){ return s.replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
   function buildSubs(a){
     if(!a.sub || !a.sub.length) return '';
     return a.sub.map(function(s){return '<div class="sub">'+esc(s)+'</div>';}).join('');
   }
 
+  function penalSummary(pn){
+    var p = penalByNum[pn];
+    if(!p) return '';
+    var txt = p.text;
+    var m = txt.match(/بغرامة[^\u060c\u061b\u0648،؛]{0,90}/);
+    var fine = m ? m[0].trim() : 'وفقًا لأحكام هذه المادة الجزائية';
+    return '<div class="penalty"><div class="ph">⚖️ الجزاء المرتبط — م ('+pn+')</div><div class="pt short">'+esc(fine)+'</div></div>';
+  }
+
   function buildPenalty(a){
     if(!a.penalNums || !a.penalNums.length) return '';
-    return a.penalNums.map(function(pn){
-      var p = penalByNum[pn];
-      if(!p) return '';
-      return '<div class="penalty"><div class="ph">⚖️ الجزاء المرتبط — م ('+pn+')</div><div class="pt">'+esc(p.text)+'</div></div>';
-    }).join('');
+    return a.penalNums.map(function(pn){ return penalSummary(pn); }).join('');
   }
 
   function buildPenalCard(p){
@@ -2913,7 +2940,7 @@ var LAW_DATA = {
       return '<div class="card" data-copy="'+a.num+'|'+esc(a.text)+'">'
         +'<span class="num">م ('+a.num+')</span>'
         +(a.section?'<span class="sec">📂 '+esc(a.section)+'</span>':'')
-        +'<div class="text">'+esc(a.text)+'</div>'
+        +'<div class="text">'+highlight(a.text, term)+'</div>'
         +buildSubs(a)
         +buildPenalty(a)
         +actions(a.num,'مادة ('+a.num+')', a.text)
