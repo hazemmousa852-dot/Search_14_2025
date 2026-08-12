@@ -85,8 +85,8 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:34px;pad
 </div>
 <div class="toast" id="toast"></div>
 
-<script>
-/* بيانات قانون العمل المصري رقم 14 لسنة 2025 — تُلحق كمتغير عام */
+
+<script>/* بيانات قانون العمل المصري رقم 14 لسنة 2025 — تُلحق كمتغير عام */
 var LAW_DATA = {
  "law": {
   "name": "قانون العمل الصادر بالقانون رقم 14 لسنة 2025",
@@ -2805,8 +2805,7 @@ var LAW_DATA = {
  ]
 };
 
-</script>
-<script>
+
 (function(){
   'use strict';
   var data = LAW_DATA;
@@ -2896,7 +2895,8 @@ var LAW_DATA = {
     var p = penalByNum[pn];
     if(!p) return '';
     var txt = p.text;
-    var m = txt.match(/بغرامة[^\u060c\u061b\u0648،؛]{0,90}/);
+    // استخراج نص الغرامة كاملًا بنطاقها (من ... إلى) حتى أول فاصلة أو فاصلة منقوطة
+    var m = txt.match(/بغرامة[\s\w\u0621-\u064A\u0660-\u0669\u06F0-\u06F9\u0640()（）٪%]+?(?=\s*[,،؛\u061b\.])/);
     var fine = m ? m[0].trim() : 'وفقًا لأحكام هذه المادة الجزائية';
     return '<div class="penalty"><div class="ph">⚖️ الجزاء المرتبط — م ('+pn+')</div><div class="pt short">'+esc(fine)+'</div></div>';
   }
