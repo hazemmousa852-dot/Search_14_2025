@@ -76,7 +76,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:34px;pad
 <div class="container">
   <header><div class="hm-head-logo" style="text-align:center;margin:0 0 12px"><img class="hm-tool-logo hm-tool-logo--hero" src="https://hazemmousa852-dot.github.io/marjaak-alqanuni/brand/logo-512.png" alt="شعار حازم موسى" width="64" height="64" decoding="async"></div>
     <h1>📚 ابحث في قانون العمل رقم 14 لسنة 2025</h1>
-    <p>279 مادة كاملة من القانون الجديد — اكتب كلمة أو رقم مادة وستجد ضالتك فورًا</p>
+    <p>279 مادة موضوعية، مع تبويب مستقل للعقوبات — اكتب كلمة أو رقم مادة وستجد ضالتك فورًا</p>
   </header>
 
   <div class="search-box">
@@ -95,7 +95,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:34px;pad
     <div class="empty"><span class="big">🔍</span>ابدأ الكتابة في مربع البحث أو افتح تبويب المواد الجزائية</div>
   </div>
 
-  <footer>قانون العمل الصادر بالقانون رقم 14 لسنة 2025 — صُدر برئاسة الجمهورية في 3 مايو 2025</footer>
+  <p role="note" style="max-width:900px;margin:16px auto;padding:12px;line-height:1.8">النص أداة بحث؛ راجع المصدر الرسمي وتاريخ سريان التعديلات قبل تسوية فعلية. القطاع الخاص: تُراعى الفئات والاستثناءات.</p><footer>قانون العمل الصادر بالقانون رقم 14 لسنة 2025 — صُدر برئاسة الجمهورية في 3 مايو 2025</footer>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -2960,7 +2960,7 @@ var LAW_DATA = {
   function actions(num, title, text){
     var copyVal = num + ' : ' + text;
     var shareVal = title + ' — ' + text;
-    return '<div class="actions">'
+    return '<p class="source-note"><a target="_blank" rel="noopener" href="https://hazemmousa852-dot.github.io/marjaak-alqanuni/article.html?law=labor-14-2025&amp;article='+encodeURIComponent(num)+'">المادة ومصدرها في المرجع الموحد</a></p><div class="actions">'
       +'<button type="button" data-act="copy" data-val="'+esc(copyVal)+'">📋 نسخ</button>'
       +'<button type="button" data-act="share" data-val="'+esc(shareVal)+'">📤 مشاركة</button>'
       +'</div>';
